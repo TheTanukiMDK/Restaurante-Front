@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Calendar, Clock, Users, Edit, Trash2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
+import Header from '@/components/ui/header'
 import {
   Card,
   CardContent,
@@ -54,7 +55,7 @@ export default function ReservationList() {
   }
 
   const handleUpdateReservation = (updatedReservation: Reservation) => {
-    setReservations(reservations.map(res => 
+    setReservations(reservations.map(res =>
       res.id === updatedReservation.id ? updatedReservation : res
     ))
     setEditingReservation(null)
@@ -65,106 +66,109 @@ export default function ReservationList() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAB677] p-4">
-      <Card className="max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-[#EC8439]">Reservaciones</CardTitle>
-          <CardDescription>Gestione las reservaciones del restaurante</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {reservations.map(reservation => (
-              <Card key={reservation.id}>
-                <CardHeader>
-                  <CardTitle>{reservation.name}</CardTitle>
-                  <CardDescription>Mesa {reservation.tableNumber}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center space-x-4">
-                    <Calendar className="text-[#EC8439]" />
-                    <span>{reservation.date}</span>
-                    <Clock className="text-[#EC8439]" />
-                    <span>{reservation.time}</span>
-                    <Users className="text-[#EC8439]" />
-                    <span>{reservation.guests} personas</span>
-                  </div>
-                </CardContent>
-                <CardFooter className="flex justify-end space-x-2">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="icon"
-                        onClick={() => handleEditReservation(reservation)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Editar Reservación</DialogTitle>
-                        <DialogDescription>
-                          Modifique los detalles de la reservación aquí.
-                        </DialogDescription>
-                      </DialogHeader>
-                      {editingReservation && (
-                        <form onSubmit={(e) => {
-                          e.preventDefault()
-                          const formData = new FormData(e.currentTarget)
-                          const updatedReservation: Reservation = {
-                            ...editingReservation,
-                            name: formData.get('name') as string,
-                            date: formData.get('date') as string,
-                            time: formData.get('time') as string,
-                            guests: parseInt(formData.get('guests') as string),
-                            tableNumber: parseInt(formData.get('tableNumber') as string),
-                          }
-                          handleUpdateReservation(updatedReservation)
-                        }}>
-                          <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label htmlFor="name" className="text-right">Nombre</Label>
-                              <Input id="name" name="name" defaultValue={editingReservation.name} className="col-span-3" />
+    <>
+      <Header></Header>
+      <div className="min-h-screen bg-[#FAB677] p-4">
+        <Card className="max-w-4xl mx-auto">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-[#EC8439]">Reservaciones</CardTitle>
+            <CardDescription>Gestione las reservaciones del restaurante</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {reservations.map(reservation => (
+                <Card key={reservation.id}>
+                  <CardHeader>
+                    <CardTitle>{reservation.name}</CardTitle>
+                    <CardDescription>Mesa {reservation.tableNumber}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center space-x-4">
+                      <Calendar className="text-[#EC8439]" />
+                      <span>{reservation.date}</span>
+                      <Clock className="text-[#EC8439]" />
+                      <span>{reservation.time}</span>
+                      <Users className="text-[#EC8439]" />
+                      <span>{reservation.guests} personas</span>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex justify-end space-x-2">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleEditReservation(reservation)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Editar Reservación</DialogTitle>
+                          <DialogDescription>
+                            Modifique los detalles de la reservación aquí.
+                          </DialogDescription>
+                        </DialogHeader>
+                        {editingReservation && (
+                          <form onSubmit={(e) => {
+                            e.preventDefault()
+                            const formData = new FormData(e.currentTarget)
+                            const updatedReservation: Reservation = {
+                              ...editingReservation,
+                              name: formData.get('name') as string,
+                              date: formData.get('date') as string,
+                              time: formData.get('time') as string,
+                              guests: parseInt(formData.get('guests') as string),
+                              tableNumber: parseInt(formData.get('tableNumber') as string),
+                            }
+                            handleUpdateReservation(updatedReservation)
+                          }}>
+                            <div className="grid gap-4 py-4">
+                              <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="name" className="text-right">Nombre</Label>
+                                <Input id="name" name="name" defaultValue={editingReservation.name} className="col-span-3" />
+                              </div>
+                              <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="date" className="text-right">Fecha</Label>
+                                <Input id="date" name="date" type="date" defaultValue={editingReservation.date} className="col-span-3" />
+                              </div>
+                              <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="time" className="text-right">Hora</Label>
+                                <Input id="time" name="time" type="time" defaultValue={editingReservation.time} className="col-span-3" />
+                              </div>
+                              <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="guests" className="text-right">Personas</Label>
+                                <Input id="guests" name="guests" type="number" defaultValue={editingReservation.guests} className="col-span-3" />
+                              </div>
+                              <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="tableNumber" className="text-right">Mesa</Label>
+                                <Input id="tableNumber" name="tableNumber" type="number" defaultValue={editingReservation.tableNumber} className="col-span-3" />
+                              </div>
+                              <DialogFooter>
+                                <Button type="submit" variant="primary">
+                                  Actualizar
+                                </Button>
+                              </DialogFooter>
                             </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label htmlFor="date" className="text-right">Fecha</Label>
-                              <Input id="date" name="date" type="date" defaultValue={editingReservation.date} className="col-span-3" />
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label htmlFor="time" className="text-right">Hora</Label>
-                              <Input id="time" name="time" type="time" defaultValue={editingReservation.time} className="col-span-3" />
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label htmlFor="guests" className="text-right">Personas</Label>
-                              <Input id="guests" name="guests" type="number" defaultValue={editingReservation.guests} className="col-span-3" />
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label htmlFor="tableNumber" className="text-right">Mesa</Label>
-                              <Input id="tableNumber" name="tableNumber" type="number" defaultValue={editingReservation.tableNumber} className="col-span-3" />
-                            </div>
-                            <DialogFooter>
-                              <Button type="submit" variant="primary">
-                                Actualizar
-                              </Button>
-                            </DialogFooter>
-                          </div>
-                        </form>
-                      )}
-                    </DialogContent>
-                  </Dialog>
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
-                    onClick={() => handleDeleteReservation(reservation.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+                          </form>
+                        )}
+                      </DialogContent>
+                    </Dialog>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleDeleteReservation(reservation.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </>
   )
 }
