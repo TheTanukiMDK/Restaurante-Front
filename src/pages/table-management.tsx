@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ImNewTab } from 'react-icons/im'
 
 interface Table {
   id: number
@@ -44,7 +45,7 @@ export default function Component() {
           id: mesa.id,
           number: mesa.numero_mesa,
           capacity: mesa.capacidad_mesa,
-          status: mesa.estado_mesa === 1 ? 'available' : mesa.estado_mesa === 2 ? 'occupied' : 'reserved',
+          status: mesa.estado_mesa === 0 ? 'available' : mesa.estado_mesa === 1 ? 'occupied' : mesa.estado_mesa === 2 ? 'reserved' : '',
           occupiedSince: mesa.estado_mesa === 2 ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined
         })))
       } catch (error) {
@@ -56,14 +57,15 @@ export default function Component() {
 
   const handleTableAction = async (action: 'occupy' | 'free' | 'reserve') => {
     if (selectedTable) {
-      const status = action === 'occupy' ? 'occupied' : action === 'free' ? 'available' : 'reserved';
+      const status = action === 'occupy' ? 1 : action === 'free' ? 0 : action === 'reserve' ? 2 : ''
       const occupiedSince = action === 'occupy' ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
 
       try {
-        const response = await fetch(`http://localhost:3000/api/mesas?id=${selectedTable.id}`, {
+        const response = await fetch(`http://localhost:3000/api/mesas`, {
           method: 'PATCH',
+
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status, occupiedSince }),
+          body: JSON.stringify({ estado_mesa: status, id: selectedTable.id, occupiedSince }),
         });
 
         if (response.ok) {
@@ -71,12 +73,12 @@ export default function Component() {
 
           setTables(tables.map(table =>
             table.id === selectedTable.id
-              ? { ...table, status: updatedTable.status, occupiedSince: updatedTable.occupiedSince }
+              ? { ...table, status: updatedTable.estado_mesa === 0 ? 'available' : updatedTable.estado_mesa === 1 ? 'occupied' : updatedTable.estado_mesa === 2 ? 'reserved' : '' }
               : table
           ));
           setSelectedTable(null);
         } else {
-          console.error('Error al actualizar la mesa');
+          console.error('Error al actualizar la mesa', response);
         }
       } catch (error) {
         console.error('Error de red:', error);
@@ -108,11 +110,11 @@ export default function Component() {
             id: newTable.id,
             number: newTable.numero_mesa,
             capacity: newTable.capacidad_mesa,
-            status: newTable.estado_mesa === 1 ? 'available' : newTable.estado_mesa === 2 ? 'occupied' : 'reserved',
+            status: newTable.estado_mesa === 0 ? 'available' : newTable.estado_mesa === 1 ? 'occupied' : 'reserved',
           },
         ]);
       } else {
-        console.error('Error al agregar la mesa');
+        console.error('Error al agregar la mesa',response);
       }
     } catch (error) {
       console.error('Error de red:', error);
@@ -131,15 +133,13 @@ export default function Component() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {tables.map(table => (
-                <Card 
-                  key={table.id} 
-                  className={`cursor-pointer ${
-                    selectedTable?.id === table.id ? 'ring-2 ring-[#EC8439]' : ''
-                  } ${
-                    table.status === 'available' ? 'bg-green-100' :
-                    table.status === 'occupied' ? 'bg-red-100' :
-                    'bg-yellow-100'
-                  }`}
+                <Card
+                  key={table.id}
+                  className={`cursor-pointer ${selectedTable?.id === table.id ? 'ring-2 ring-[#EC8439]' : ''
+                    } ${table.status === 'available' ? 'bg-green-100' :
+                      table.status === 'occupied' ? 'bg-red-100' :
+                        'bg-yellow-100'
+                    }`}
                   onClick={() => setSelectedTable(table)}
                 >
                   <CardHeader>
@@ -169,22 +169,22 @@ export default function Component() {
           </CardContent>
           <CardFooter className="flex justify-between">
             <div className="space-x-2">
-              <Button 
-                onClick={() => handleTableAction('occupy')} 
+              <Button
+                onClick={() => handleTableAction('occupy')}
                 disabled={!selectedTable || selectedTable.status === 'occupied'}
                 className="bg-[#EC8439] hover:bg-[#EE9D5E]"
               >
                 Ocupar
               </Button>
-              <Button 
-                onClick={() => handleTableAction('free')} 
+              <Button
+                onClick={() => handleTableAction('free')}
                 disabled={!selectedTable || selectedTable.status === 'available'}
                 className="bg-[#EC8439] hover:bg-[#EE9D5E]"
               >
                 Liberar
               </Button>
-              <Button 
-                onClick={() => handleTableAction('reserve')} 
+              <Button
+                onClick={() => handleTableAction('reserve')}
                 disabled={!selectedTable || selectedTable.status === 'reserved'}
                 className="bg-[#EC8439] hover:bg-[#EE9D5E]"
               >
