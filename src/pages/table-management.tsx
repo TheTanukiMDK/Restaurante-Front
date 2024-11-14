@@ -45,7 +45,7 @@ export default function Component() {
           id: mesa.id,
           number: mesa.numero_mesa,
           capacity: mesa.capacidad_mesa,
-          status: mesa.estado_mesa === 0 ? 'available' : mesa.estado_mesa === 1 ? 'occupied' : mesa.estado_mesa === 2 ? 'reserved' : '',
+          status: mesa.estado_mesa === 1 ? 'available' : mesa.estado_mesa === 2 ? 'occupied' : mesa.estado_mesa === 3 ? 'reserved' : '',
           occupiedSince: mesa.estado_mesa === 2 ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined
         })))
       } catch (error) {
@@ -57,7 +57,7 @@ export default function Component() {
 
   const handleTableAction = async (action: 'occupy' | 'free' | 'reserve') => {
     if (selectedTable) {
-      const status = action === 'occupy' ? 1 : action === 'free' ? 0 : action === 'reserve' ? 2 : ''
+      const status = action === 'occupy' ? 2 : action === 'free' ? 1 : action === 'reserve' ? 3 : ''
       const occupiedSince = action === 'occupy' ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
 
       try {
@@ -73,7 +73,7 @@ export default function Component() {
 
           setTables(tables.map(table =>
             table.id === selectedTable.id
-              ? { ...table, status: updatedTable.estado_mesa === 0 ? 'available' : updatedTable.estado_mesa === 1 ? 'occupied' : updatedTable.estado_mesa === 2 ? 'reserved' : '' }
+              ? { ...table, status: updatedTable.estado_mesa === 1 ? 'available' : updatedTable.estado_mesa === 2 ? 'occupied' : updatedTable.estado_mesa === 3 ? 'reserved' : '' }
               : table
           ));
           setSelectedTable(null);
@@ -87,39 +87,51 @@ export default function Component() {
   }
 
   const addNewTable = async (number: number, capacity: number) => {
+    const data = {
+      numero_mesa: number,
+      capacidad_mesa: capacity,
+      estado_mesa: 1, // Mesa disponible por defecto
+      is_temp: false,  // Cambiar a true si deseas crear una mesa temporal
+      id_empleado: 1,  // Suponiendo que el ID de empleado está fijo por ahora
+    };
+  
+    // Imprime los datos antes de enviarlos
+    console.log("Datos enviados:", data);
+  
     try {
       const response = await fetch('http://localhost:3000/api/mesas', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          numero: number,
-          capacidad_mesa: capacity,
-          estado_mesa: 1,  // Mesa disponible por defecto
-          is_temp: false,  // Cambiar a true si deseas crear una mesa temporal
-          id_empleado: 1,  // Suponiendo que el ID de empleado está fijo por ahora
-        }),
+        body: JSON.stringify(data),
       });
-
-      if (response.ok) {
-        const newTable = await response.json();
-        setTables((prevTables) => [
-          ...prevTables,
-          {
-            id: newTable.id,
-            number: newTable.numero_mesa,
-            capacity: newTable.capacidad_mesa,
-            status: newTable.estado_mesa === 0 ? 'available' : newTable.estado_mesa === 1 ? 'occupied' : 'reserved',
-          },
-        ]);
-      } else {
-        console.error('Error al agregar la mesa',response);
+  
+      // Si la respuesta no es exitosa, imprime el contenido del error
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error en la respuesta:", errorData);
+        return;
       }
+  
+      // Si la solicitud es exitosa, procesa la respuesta como de costumbre
+      const newTable = await response.json();
+      setTables((prevTables) => [
+        ...prevTables,
+        {
+          id: newTable.id,
+          number: newTable.numero_mesa,
+          capacity: newTable.capacidad_mesa,
+          status: newTable.estado_mesa === 0 ? 'available' : newTable.estado_mesa === 1 ? 'occupied' : 'reserved',
+        },
+      ]);
+      
     } catch (error) {
-      console.error('Error de red:', error);
+      // Imprime cualquier error de red o de la solicitud
+      console.error("Error de red o en la solicitud:", error);
     }
-  }
+  };
+  
 
   return (
     <>
