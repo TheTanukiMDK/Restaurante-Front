@@ -122,7 +122,7 @@ export default function Component() {
           id: newTable.id,
           number: newTable.numero_mesa,
           capacity: newTable.capacidad_mesa,
-          status: newTable.estado_mesa === 0 ? 'available' : newTable.estado_mesa === 1 ? 'occupied' : 'reserved',
+          status: newTable.estado_mesa === 1 ? 'available' : newTable.estado_mesa === 2 ? 'occupied' : 'reserved',
         },
       ]);
       
