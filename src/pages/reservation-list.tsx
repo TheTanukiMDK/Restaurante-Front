@@ -19,8 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import Image from 'next/image'
-import { toast } from "@/components/ui/use-toast"
+
 
 interface Reservation {
   id_reservas: number
@@ -65,20 +64,13 @@ export default function ReservationList() {
       if (response.ok) {
         fetchReservations()
         setEditingReservation(null)
-        toast({
-          title: "Éxito",
-          description: "Reservación actualizada correctamente.",
-        })
+        alert('Éxito: Reservación actualizada correctamente.');
       } else {
-        throw new Error('Failed to update reservation')
+        throw new Error('Error al actualizar la reserva')
       }
     } catch (error) {
-      console.error('Error updating reservation:', error)
-      toast({
-        title: "Error",
-        description: "No se pudo actualizar la reservación.",
-        variant: "destructive",
-      })
+      console.error('Error al actualizar la reserva:', error)
+      alert('Error: No se pudo actualizar la reservación.');
     }
   }
 
@@ -89,20 +81,13 @@ export default function ReservationList() {
       })
       if (response.ok) {
         fetchReservations()
-        toast({
-          title: "Éxito",
-          description: "Reservación eliminada correctamente.",
-        })
+        alert('Reserva eliminada con éxito')
       } else {
-        throw new Error('Failed to delete reservation')
+        throw new Error('Error al eliminar la reserva')
       }
     } catch (error) {
-      console.error('Error deleting reservation:', error)
-      toast({
-        title: "Error",
-        description: "No se pudo eliminar la reservación.",
-        variant: "destructive",
-      })
+      console.error('Error al eliminar la reserva:', error)
+      alert('Error al eliminar la reserva')
     }
   }
 
