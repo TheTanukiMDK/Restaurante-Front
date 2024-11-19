@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { Clock, Users, Edit, Trash2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
-import Header from '@/components/ui/header'
 import {
   Card,
   CardContent,
@@ -19,6 +18,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import Navbar from '@/components/ui/components_Navbar'
 
 
 interface Reservation {
@@ -93,7 +93,7 @@ export default function ReservationList() {
 
   return (
     <>
-      <Header />
+      <Navbar />
       <div className="min-h-screen bg-[#FAB677] p-8">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl font-bold text-[#EC8439] mb-2">Reservaciones</h1>
@@ -109,13 +109,7 @@ export default function ReservationList() {
                     </div>
                     <div className="flex items-center gap-6">
                       <div className="flex items-center gap-2">
-                        <Image
-                          src="/placeholder.svg?height=20&width=20"
-                          alt="Calendar"
-                          width={20}
-                          height={20}
-                          className="text-[#EC8439]"
-                        />
+
                         <span>{new Date(reservation.fecha_hora).toLocaleDateString()}</span>
                       </div>
                       <div className="flex items-center gap-2">

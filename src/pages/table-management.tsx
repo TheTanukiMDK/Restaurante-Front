@@ -12,7 +12,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import Header from '@/components/ui/header'
 import {
   Card,
   CardContent,
@@ -34,6 +33,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ImNewTab } from 'react-icons/im'
 import Swal from 'sweetalert2';
+import Navbar from '@/components/ui/components_Navbar'
 
 
 interface Table {
@@ -224,7 +224,7 @@ export default function Component() {
 
   return (
     <>
-      <Header></Header>
+      <Navbar />
       <div className="min-h-screen bg-[#FAB677] p-4">
         <Card className="max-w-4xl mx-auto">
           <CardHeader>

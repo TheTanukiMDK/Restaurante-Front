@@ -28,6 +28,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import Navbar from '@/components/ui/components_Navbar'
 
 interface Reservation {
     id: number
@@ -41,7 +42,7 @@ interface Reservation {
 function FormReserva() {
     return (
         <>
-            <Header></Header>
+            <Navbar />
             <div className="flex items-center justify-center min-h-screen bg-[#FAB677] p-4">
 
                 <form className="flex flex-col space-y-4 max-w-xl w-full mx-auto p-4 bg-white shadow-lg rounded-lg">
