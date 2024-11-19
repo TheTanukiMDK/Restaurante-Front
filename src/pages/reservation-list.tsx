@@ -1,173 +1,229 @@
 'use client'
 
-import { useState } from 'react'
-import { Calendar, Clock, Users, Edit, Trash2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Clock, Users, Edit, Trash2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import Header from '@/components/ui/header'
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import Image from 'next/image'
+import { toast } from "@/components/ui/use-toast"
 
 interface Reservation {
-  id: number
-  name: string
-  date: string
-  time: string
-  guests: number
-  tableNumber: number
+  id_reservas: number
+  id_cliente: number
+  id_mesa: number
+  fecha_hora: string
+  numero_personas_reserva: number
+  confirmacion: boolean
 }
 
-const INITIAL_RESERVATIONS: Reservation[] = [
-  { id: 1, name: "Juan Pérez", date: "2024-11-15", time: "19:00", guests: 4, tableNumber: 5 },
-  { id: 2, name: "María García", date: "2024-11-15", time: "20:30", guests: 2, tableNumber: 2 },
-  { id: 3, name: "Carlos Rodríguez", date: "2024-11-16", time: "18:45", guests: 6, tableNumber: 8 },
-]
-
 export default function ReservationList() {
-  const [reservations, setReservations] = useState<Reservation[]>(INITIAL_RESERVATIONS)
+  const [reservations, setReservations] = useState<Reservation[]>([])
   const [editingReservation, setEditingReservation] = useState<Reservation | null>(null)
+
+  useEffect(() => {
+    fetchReservations()
+  }, [])
+
+  const fetchReservations = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/reservas')
+      const data = await response.json()
+      setReservations(data.Reservas)
+    } catch (error) {
+      console.error('Error fetching reservations:', error)
+    }
+  }
 
   const handleEditReservation = (reservation: Reservation) => {
     setEditingReservation(reservation)
   }
 
-  const handleUpdateReservation = (updatedReservation: Reservation) => {
-    setReservations(reservations.map(res =>
-      res.id === updatedReservation.id ? updatedReservation : res
-    ))
-    setEditingReservation(null)
+  const handleUpdateReservation = async (updatedReservation: Reservation) => {
+    try {
+      const response = await fetch('http://localhost:3000/api/reservas', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedReservation),
+      })
+      if (response.ok) {
+        fetchReservations()
+        setEditingReservation(null)
+        toast({
+          title: "Éxito",
+          description: "Reservación actualizada correctamente.",
+        })
+      } else {
+        throw new Error('Failed to update reservation')
+      }
+    } catch (error) {
+      console.error('Error updating reservation:', error)
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar la reservación.",
+        variant: "destructive",
+      })
+    }
   }
 
-  const handleDeleteReservation = (id: number) => {
-    setReservations(reservations.filter(res => res.id !== id))
+  const handleDeleteReservation = async (id: number) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/reservas?id_reservas=${id}`, {
+        method: 'DELETE',
+      })
+      if (response.ok) {
+        fetchReservations()
+        toast({
+          title: "Éxito",
+          description: "Reservación eliminada correctamente.",
+        })
+      } else {
+        throw new Error('Failed to delete reservation')
+      }
+    } catch (error) {
+      console.error('Error deleting reservation:', error)
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar la reservación.",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
     <>
-      <Header></Header>
-      <div className="min-h-screen bg-[#FAB677] p-4">
-        <Card className="max-w-4xl mx-auto">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-[#EC8439]">Reservaciones</CardTitle>
-            <CardDescription>Gestione las reservaciones del restaurante</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {reservations.map(reservation => (
-                <Card key={reservation.id}>
-                  <CardHeader>
-                    <CardTitle>{reservation.name}</CardTitle>
-                    <CardDescription>Mesa {reservation.tableNumber}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center space-x-4">
-                      <Calendar className="text-[#EC8439]" />
-                      <span>{reservation.date}</span>
-                      <Clock className="text-[#EC8439]" />
-                      <span>{reservation.time}</span>
-                      <Users className="text-[#EC8439]" />
-                      <span>{reservation.guests} personas</span>
+      <Header />
+      <div className="min-h-screen bg-[#FAB677] p-8">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-4xl font-bold text-[#EC8439] mb-2">Reservaciones</h1>
+          <p className="text-gray-600 mb-6">Gestione las reservaciones del restaurante</p>
+          <div className="space-y-4">
+            {reservations.map(reservation => (
+              <Card key={reservation.id_reservas} className="border-0 shadow-sm">
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div>
+                      <h2 className="text-2xl font-bold mb-1">Cliente ID: {reservation.id_cliente}</h2>
+                      <p className="text-gray-500">Mesa {reservation.id_mesa}</p>
                     </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-end space-x-2">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => handleEditReservation(reservation)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Editar Reservación</DialogTitle>
-                          <DialogDescription>
-                            Modifique los detalles de la reservación aquí.
-                          </DialogDescription>
-                        </DialogHeader>
-                        {editingReservation && (
-                          <form onSubmit={(e) => {
-                            e.preventDefault()
-                            const formData = new FormData(e.currentTarget)
-                            const updatedReservation: Reservation = {
-                              ...editingReservation,
-                              name: formData.get('name') as string,
-                              date: formData.get('date') as string,
-                              time: formData.get('time') as string,
-                              guests: parseInt(formData.get('guests') as string),
-                              tableNumber: parseInt(formData.get('tableNumber') as string),
-                            }
-                            handleUpdateReservation(updatedReservation)
-                          }}>
-                            <div className="grid gap-4 py-4">
-                              <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="name" className="text-right">Nombre</Label>
-                                <Input id="name" name="name" defaultValue={editingReservation.name} className="col-span-3" />
-                              </div>
-                              <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="date" className="text-right">Fecha</Label>
-                                <Input id="date" name="date" type="date" defaultValue={editingReservation.date} className="col-span-3" />
-                              </div>
-                              <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="time" className="text-right">Hora</Label>
-                                <Input id="time" name="time" type="time" defaultValue={editingReservation.time} className="col-span-3" />
-                              </div>
-                              <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="guests" className="text-right">Personas</Label>
-                                <Input id="guests" name="guests" type="number" defaultValue={editingReservation.guests} className="col-span-3" />
-                              </div>
-                              <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="tableNumber" className="text-right">Mesa</Label>
-                                <Input id="tableNumber" name="tableNumber" type="number" defaultValue={editingReservation.tableNumber} className="col-span-3" />
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-2">
+                        <Image
+                          src="/placeholder.svg?height=20&width=20"
+                          alt="Calendar"
+                          width={20}
+                          height={20}
+                          className="text-[#EC8439]"
+                        />
+                        <span>{new Date(reservation.fecha_hora).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-5 w-5 text-[#EC8439]" />
+                        <span>{new Date(reservation.fecha_hora).toLocaleTimeString()}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Users className="h-5 w-5 text-[#EC8439]" />
+                        <span>{reservation.numero_personas_reserva} personas</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="rounded-full bg-gray-50 hover:bg-gray-100"
+                            onClick={() => handleEditReservation(reservation)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Editar Reservación</DialogTitle>
+                            <DialogDescription>
+                              Modifique los detalles de la reservación aquí.
+                            </DialogDescription>
+                          </DialogHeader>
+                          {editingReservation && (
+                            <form onSubmit={(e) => {
+                              e.preventDefault()
+                              const formData = new FormData(e.currentTarget)
+                              const updatedReservation: Reservation = {
+                                ...editingReservation,
+                                id_cliente: parseInt(formData.get('id_cliente') as string),
+                                id_mesa: parseInt(formData.get('id_mesa') as string),
+                                fecha_hora: formData.get('fecha_hora') as string,
+                                numero_personas_reserva: parseInt(formData.get('numero_personas_reserva') as string),
+                                confirmacion: (formData.get('confirmacion') as string) === 'true',
+                              }
+                              handleUpdateReservation(updatedReservation)
+                            }}>
+                              <div className="grid gap-4 py-4">
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="id_cliente" className="text-right">ID Cliente</Label>
+                                  <Input id="id_cliente" name="id_cliente" defaultValue={editingReservation.id_cliente} className="col-span-3" />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="id_mesa" className="text-right">ID Mesa</Label>
+                                  <Input id="id_mesa" name="id_mesa" defaultValue={editingReservation.id_mesa} className="col-span-3" />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="fecha_hora" className="text-right">Fecha y Hora</Label>
+                                  <Input id="fecha_hora" name="fecha_hora" type="datetime-local" defaultValue={new Date(editingReservation.fecha_hora).toISOString().slice(0, 16)} className="col-span-3" />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="numero_personas_reserva" className="text-right">Personas</Label>
+                                  <Input id="numero_personas_reserva" name="numero_personas_reserva" type="number" defaultValue={editingReservation.numero_personas_reserva} className="col-span-3" />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="confirmacion" className="text-right">Confirmación</Label>
+                                  <select id="confirmacion" name="confirmacion" defaultValue={editingReservation.confirmacion.toString()} className="col-span-3">
+                                    <option value="true">Confirmada</option>
+                                    <option value="false">No confirmada</option>
+                                  </select>
+                                </div>
                               </div>
                               <DialogFooter>
-                                <Button type="submit" variant="primary">
+                                <Button type="submit" className="bg-[#EC8439] hover:bg-[#EC8439]/90">
                                   Actualizar
                                 </Button>
                               </DialogFooter>
-                            </div>
-                          </form>
-                        )}
-                      </DialogContent>
-                    </Dialog>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleDeleteReservation(reservation.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                            </form>
+                          )}
+                        </DialogContent>
+                      </Dialog>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="rounded-full bg-red-50 hover:bg-red-100 text-red-500"
+                        onClick={() => handleDeleteReservation(reservation.id_reservas)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
       </div>
     </>
   )
