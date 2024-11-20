@@ -97,7 +97,7 @@ export default function ReservationList() {
   }
 
   
-  const handleConfirmReservation = async (id_reservas: number) => {
+  const handleConfirmReservation = async (id_reservas: number, id_mesa: number) => {
     const swalWithBootstrapButtons = Swal.mixin({
         customClass: {
             confirmButton: "btn btn-success",
@@ -119,7 +119,7 @@ export default function ReservationList() {
         .then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const response = await fetch(
+                    const reservaResponse = await fetch(
                         `http://localhost:3000/api/reservas`,
                         {
                             method: "PATCH",
@@ -130,11 +130,25 @@ export default function ReservationList() {
                                 id_reservas,
                                 confirmacion: true, // Cambiar el estado a confirmado
                             }),
-                        }
+                        },
                     );
 
-                    if (response.ok) {
-                        const data = await response.json();
+                    const mesaResponse = await fetch(
+                      `http://localhost:3000/api/mesas`,
+                      {
+                          method: "PATCH",
+                          headers: {
+                              "Content-Type": "application/json",
+                          },
+                          body: JSON.stringify({
+                              id: id_mesa,
+                              estado_mesa: 2, // Cambiar el estado a confirmado
+                          }),
+                      },
+                  );
+
+                    if (reservaResponse.ok && mesaResponse.ok) {
+                        const data = await reservaResponse.json();
                         swalWithBootstrapButtons.fire({
                             title: "¡Confirmado!",
                             text: data.message || "La reserva ha sido confirmada.",
@@ -144,7 +158,7 @@ export default function ReservationList() {
                         // Opcional: Recargar las reservas después de confirmar
                         fetchReservations(); // Asegúrate de que esta función esté definida en tu componente
                     } else {
-                        const errorData = await response.json();
+                        const errorData = await reservaResponse.json();
                         throw new Error(errorData.message || "Error desconocido");
                     }
                 } catch (error) {
