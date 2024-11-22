@@ -23,17 +23,24 @@ import Navbar from '@/components/ui/components_Navbar';
 import Swal from 'sweetalert2'; // Importación única, al principio
 import 'sweetalert2/src/sweetalert2.scss';
 
-
-
+interface Cliente {
+  id: number;
+  nombre: string;
+  telefono: string;
+  email: string;
+}
 
 interface Reservation {
-  id_reservas: number
-  id_cliente: number
-  id_mesa: number
-  fecha_hora: string
-  numero_personas_reserva: number
-  confirmacion: boolean
+  id_reservas: number;
+  id_cliente: number;
+  nombre: string; // Agregado para mostrar el nombre del cliente
+  id_mesa: number;
+  fecha_hora: string;
+  numero_personas_reserva: number;
+  confirmacion: boolean;
+  cliente: Cliente
 }
+
 
 export default function ReservationList() {
   const [reservations, setReservations] = useState<Reservation[]>([])
@@ -104,15 +111,15 @@ export default function ReservationList() {
   }
 
 
-  const handleConfirmReservation = async (id_reservas: number) => {
+  const handleConfirmReservation = async (id_reservas: number, reservation: Reservation) => {
     const swalWithBootstrapButtons = Swal.mixin({
       customClass: {
-        confirmButton: "btn btn-success",
-        cancelButton: "btn btn-danger",
+        confirmButton: "bg-green-400 p-2 text-white rounded-lg",
+        cancelButton: "bg-red-400 p-2 text-white rounded-lg ",
       },
       buttonsStyling: false,
     });
-
+  
     swalWithBootstrapButtons
       .fire({
         title: "¿Estás seguro?",
@@ -139,7 +146,7 @@ export default function ReservationList() {
                 }),
               }
             );
-
+  
             if (response.ok) {
               const data = await response.json();
               swalWithBootstrapButtons.fire({
@@ -147,9 +154,15 @@ export default function ReservationList() {
                 text: data.message || "La reserva ha sido confirmada.",
                 icon: "success",
               });
-
-              // Opcional: Recargar las reservas después de confirmar
-              fetchReservations(); // Asegúrate de que esta función esté definida en tu componente
+  
+              // Actualizar el estado local para reflejar que la reserva fue confirmada
+              setReservations((prevReservations) =>
+                prevReservations.map((r) =>
+                  r.id_reservas === id_reservas
+                    ? { ...r, confirmacion: true }
+                    : r
+                )
+              );
             } else {
               const errorData = await response.json();
               throw new Error(errorData.message || "Error desconocido");
@@ -188,7 +201,7 @@ export default function ReservationList() {
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     <div>
-                      <h2 className="text-2xl font-bold mb-1">Cliente ID: {reservation.id_cliente}</h2>
+                    <h2 className="text-2xl font-bold mb-1">{reservation.cliente.nombre || 'sin nombre'}</h2>
                       <p className="text-gray-500">Mesa {reservation.id_mesa}</p>
                     </div>
                     <div className="flex items-center gap-6">
@@ -198,7 +211,7 @@ export default function ReservationList() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock className="h-5 w-5 text-[#EC8439]" />
-                        <span>{new Date(reservation.fecha_hora).toLocaleTimeString()}</span>
+                        <span>{new Date(reservation.fecha_hora).toISOString().slice(11, 16)}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Users className="h-5 w-5 text-[#EC8439]" />
@@ -207,12 +220,15 @@ export default function ReservationList() {
                     </div>
                     <div className="flex justify-between items-center gap-2">
                       <div>
-                        <Button
-                          onClick={() => handleConfirmReservation(reservation.id_reservas, reservation.id_mesa)}
-                          className="bg-green-500 text-white hover:bg-green-600"
-                        >
-                          Confirmar
-                        </Button>
+                      {reservation.confirmacion ? (
+              <span className="text-green-500 font-semibold">Reserva Confirmada</span>
+            ) : (
+              <Button
+                onClick={() => handleConfirmReservation(reservation.id_reservas, reservation)}
+                className="bg-green-500 text-white hover:bg-green-600"
+              >
+                Confirmar
+              </Button>)}
 
                       </div>
                       <div className="flex gap-2">
@@ -253,7 +269,7 @@ export default function ReservationList() {
                                   </div>
                                   <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="confirmacion" className="text-right">Confirmación</Label>
-                                    <select id="confirmacion" name="confirmacion" defaultValue={editingReservation.confirmacion.toString()} className="col-span-3">
+                                    <select id="confirmacion" name="confirmacion" defaultValue={editingReservation.confirmacion.toString()} className="col-span-3 bg-slate-200 p-2 rounded-lg">
                                       <option value="true">Confirmada</option>
                                       <option value="false">No confirmada</option>
                                     </select>
