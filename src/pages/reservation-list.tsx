@@ -30,15 +30,26 @@ interface Cliente {
   email: string;
 }
 
+interface Mesa {
+  id: number;
+  capacidad_mesa: number;
+  numero_mesa: number;
+  estado_mesa: number;
+  id_empleado: number;
+}
+
+
 interface Reservation {
   id_reservas: number;
   id_cliente: number;
   nombre: string; // Agregado para mostrar el nombre del cliente
   id_mesa: number;
+  numero_mesa: number
   fecha_hora: string;
   numero_personas_reserva: number;
   confirmacion: boolean;
-  cliente: Cliente
+  cliente: Cliente,
+  mesa: Mesa
 }
 
 
@@ -66,7 +77,6 @@ export default function ReservationList() {
 
   const handleUpdateReservation = async (updatedReservation: Reservation) => {
     try {
-      // Realiza la solicitud PATCH para actualizar solo los campos seleccionados
       const response = await fetch('http://localhost:3000/api/reservas', {
         method: 'PATCH',
         headers: {
@@ -74,24 +84,37 @@ export default function ReservationList() {
         },
         body: JSON.stringify({
           id_reservas: updatedReservation.id_reservas,
-          fecha_hora: updatedReservation.fecha_hora,
+          fecha_hora: updatedReservation.fecha_hora, // Enviar directamente
           confirmacion: updatedReservation.confirmacion,
         }),
       });
-
+  
       if (response.ok) {
-        // Recargar las reservas después de actualizar
+        const data = await response.json();
         fetchReservations();
-        setEditingReservation(null);  // Cerrar el modal
-        alert('¡Reserva actualizada con éxito!');
+        setEditingReservation(null); // Cerrar el modal
+        Swal.fire({
+          title: '¡Éxito!',
+          text: data.message || 'Reserva actualizada con éxito.',
+          icon: 'success',
+          confirmButtonText: 'Aceptar',
+        });
       } else {
-        throw new Error('Error al actualizar la reserva');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error desconocido');
       }
     } catch (error) {
       console.error('Error al actualizar la reserva:', error);
-      alert('Error: No se pudo actualizar la reservación.');
+      Swal.fire({
+        title: 'Error',
+        text: 'No se pudo actualizar la reserva. Inténtalo nuevamente.',
+        icon: 'error',
+        confirmButtonText: 'Aceptar',
+      });
     }
   };
+  
+  
 
   const handleDeleteReservation = async (id: number) => {
     try {
@@ -202,7 +225,7 @@ export default function ReservationList() {
                   <div className="space-y-4">
                     <div>
                     <h2 className="text-2xl font-bold mb-1">{reservation.cliente.nombre || 'sin nombre'}</h2>
-                      <p className="text-gray-500">Mesa {reservation.id_mesa}</p>
+                      <p className="text-gray-500">Mesa {reservation.mesa.numero_mesa}</p>
                     </div>
                     <div className="flex items-center gap-6">
                       <div className="flex items-center gap-2">
@@ -251,28 +274,32 @@ export default function ReservationList() {
                               </DialogDescription>
                             </DialogHeader>
                             {editingReservation && (
-                              <form onSubmit={(e) => {
+                              <form  onSubmit={(e) => {
                                 e.preventDefault();
+                            
+                                // Validar y capturar los datos del formulario
                                 const formData = new FormData(e.currentTarget);
+                            
+                                const fecha_hora = formData.get('fecha_hora') as string; // Obtener el valor
+                            
+                                if (!fecha_hora) {
+                                  alert('Por favor ingrese una fecha y hora válida.');
+                                  return;
+                                }
+                            
                                 const updatedReservation: Reservation = {
-                                  ...editingReservation,
-                                  // Solo actualizar fecha_hora y confirmacion
-                                  fecha_hora: formData.get('fecha_hora') as string,
-                                  confirmacion: (formData.get('confirmacion') as string) === 'true',
+                                  ...editingReservation!,
+                                  fecha_hora, // Solo actualizamos la fecha y hora
                                 };
-                                handleUpdateReservation(updatedReservation);
+                            
+                                handleUpdateReservation(updatedReservation); // Llamar a la función de actualización
+                              
                               }}>
                                 <div className="grid gap-4 py-4">
                                   <div className="grid grid-cols-4 items-center gap-4">
+                                  <input type='hidden' name="id_reservas" defaultValue={editingReservation.id_reservas}></input>
                                     <Label htmlFor="fecha_hora" className="text-right">Fecha y Hora</Label>
                                     <Input id="fecha_hora" name="fecha_hora" type="datetime-local" defaultValue={new Date(editingReservation.fecha_hora).toISOString().slice(0, 16)} className="col-span-3" />
-                                  </div>
-                                  <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="confirmacion" className="text-right">Confirmación</Label>
-                                    <select id="confirmacion" name="confirmacion" defaultValue={editingReservation.confirmacion.toString()} className="col-span-3 bg-slate-200 p-2 rounded-lg">
-                                      <option value="true">Confirmada</option>
-                                      <option value="false">No confirmada</option>
-                                    </select>
                                   </div>
                                 </div>
                                 <DialogFooter>
