@@ -2,17 +2,6 @@ import { useState, useEffect } from 'react'
 import { Users, Utensils, Clock, Plus } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import {
   Card,
   CardContent,
   CardDescription,
@@ -31,10 +20,8 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ImNewTab } from 'react-icons/im'
 import Swal from 'sweetalert2';
 import Navbar from '@/components/ui/components_Navbar'
-
 
 interface Table {
   id: number
@@ -47,12 +34,13 @@ interface Table {
 export default function Component() {
   const [tables, setTables] = useState<Table[]>([])
   const [selectedTable, setSelectedTable] = useState<Table | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   // Fetch tables from the database on component mount
   useEffect(() => {
     const fetchTables = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/mesas')  // Ajusta la ruta si es necesario
+        const response = await fetch('http://localhost:3000/api/mesas')
         const data = await response.json()
         setTables(data.map((mesa: any) => ({
           id: mesa.id,
@@ -76,7 +64,6 @@ export default function Component() {
       try {
         const response = await fetch(`http://localhost:3000/api/mesas`, {
           method: 'PATCH',
-
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ estado_mesa: status, id: selectedTable.id, occupiedSince }),
         });
@@ -90,11 +77,14 @@ export default function Component() {
               : table
           ));
           setSelectedTable(null);
+          setIsModalOpen(false);  // Cierra el modal
+          Swal.fire('Éxito', 'La mesa se actualizó correctamente.', 'success');
         } else {
-          console.error('Error al actualizar la mesa', response);
+          Swal.fire('Error', 'No se pudo actualizar la mesa.', 'error');
         }
       } catch (error) {
         console.error('Error de red:', error);
+        Swal.fire('Error', 'Ocurrió un problema con la solicitud.', 'error');
       }
     }
   }
@@ -108,9 +98,6 @@ export default function Component() {
       id_empleado: 1,  // Suponiendo que el ID de empleado está fijo por ahora
     };
 
-    // Imprime los datos antes de enviarlos
-    console.log("Datos enviados:", data);
-
     try {
       const response = await fetch('http://localhost:3000/api/mesas', {
         method: 'POST',
@@ -120,14 +107,13 @@ export default function Component() {
         body: JSON.stringify(data),
       });
 
-      // Si la respuesta no es exitosa, imprime el contenido del error
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Error en la respuesta:", errorData);
+        Swal.fire('Error', 'No se pudo agregar la mesa.', 'error');
         return;
       }
 
-      // Si la solicitud es exitosa, procesa la respuesta como de costumbre
       const newTable = await response.json();
       setTables((prevTables) => [
         ...prevTables,
@@ -138,89 +124,13 @@ export default function Component() {
           status: newTable.estado_mesa === 1 ? 'available' : newTable.estado_mesa === 2 ? 'occupied' : 'reserved',
         },
       ]);
-
+      setIsModalOpen(false);  // Cierra el modal
+      Swal.fire('Éxito', 'Mesa agregada correctamente.', 'success');
     } catch (error) {
-      // Imprime cualquier error de red o de la solicitud
       console.error("Error de red o en la solicitud:", error);
+      Swal.fire('Error', 'Ocurrió un problema con la solicitud.', 'error');
     }
   };
-  const addTemporaryTable = async (number: number) => {
-    try {
-      const response = await fetch(`http://localhost:3000/api/mesas`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ numero_mesa: number, is_temp: true }),
-      });
-      if (response.ok) {
-        const newTable = await response.json();
-        setTables([...tables, { id: newTable.id, number: newTable.numero_mesa, capacity: 0, status: 'occupied' }]);
-      } else {
-        console.error('Error al agregar mesa temporal');
-      }
-    } catch (error) {
-      console.error('Error de red:', error);
-    }
-  };
-
-  const updateTable = async (id: number, number: number, capacity: number) => {
-    try {
-      const response = await fetch(`http://localhost:3000/api/mesas`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id,
-          capacidad_mesa: capacity,
-          numero_mesa: number,
-          estado_mesa: selectedTable?.status === 'available' ? 1 : selectedTable?.status === 'occupied' ? 2 : 3,
-          id_empleado: 1,
-        }),
-      });
-      if (response.ok) {
-        const updatedTable = await response.json();
-        setTables(tables.map(table => (table.id === id ? { ...table, number, capacity } : table)));
-        setSelectedTable(null);
-      } else {
-        console.error('Error al actualizar la mesa');
-      }
-    } catch (error) {
-      console.error('Error de red:', error);
-    }
-  };
-
-
-
-  const deleteTable = async (tableId: number) => {
-    const result = await Swal.fire({
-      title: '¿Estás seguro?',
-      text: 'Esta acción eliminará la mesa permanentemente.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar',
-    });
-
-    if (result.isConfirmed) {
-      try {
-        const response = await fetch(`http://localhost:3000/api/mesas?id=${tableId}`, {
-          method: 'DELETE',
-        });
-
-        if (response.ok) {
-          Swal.fire('¡Eliminada!', 'La mesa ha sido eliminada con éxito.', 'success');
-          setTables((prevTables) => prevTables.filter((table) => table.id !== tableId));
-        } else {
-          Swal.fire('Error', 'No se pudo eliminar la mesa.', 'error');
-        }
-      } catch (error) {
-        Swal.fire('Error', 'Ocurrió un problema con la solicitud.', 'error');
-        console.error("Error de red:", error);
-      }
-    }
-  };
-
-
 
   return (
     <>
