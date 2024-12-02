@@ -71,6 +71,8 @@ export default function ReservationList() {
     }
   }
 
+  
+
   const handleEditReservation = (reservation: Reservation) => {
     setEditingReservation(reservation)
   }
@@ -218,6 +220,21 @@ export default function ReservationList() {
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl font-bold text-[#EC8439] mb-2">Reservaciones</h1>
           <p className="text-gray-600 mb-6">Gestione las reservaciones del restaurante</p>
+          
+           {/* Botón para enlazar al formulario */}
+        <div className="mb-6">
+          <Button
+            className="bg-blue-500 text-white hover:bg-blue-600 px-4 py-2 rounded"
+            onClick={() => {
+              // Aquí puedes manejar la lógica para mostrar el formulario
+              // o redirigir a otra página.
+              window.location.href = '/reservaForm'; // Reemplaza con la ruta adecuada.
+            }}
+          >
+            Crear Nueva Reserva
+          </Button>
+        </div>
+
           <div className="space-y-4">
             {reservations.map(reservation => (
               <Card key={reservation.id_reservas} className="border-0 shadow-sm">
