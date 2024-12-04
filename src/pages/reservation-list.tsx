@@ -228,7 +228,7 @@ export default function ReservationList() {
             onClick={() => {
               // Aquí puedes manejar la lógica para mostrar el formulario
               // o redirigir a otra página.
-              window.location.href = '/reservaForm'; // Reemplaza con la ruta adecuada.
+              window.location.href = '/formReserva'; // Reemplaza con la ruta adecuada.
             }}
           >
             Crear Nueva Reserva
