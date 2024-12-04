@@ -1,11 +1,11 @@
-import Component from "@/pages/table-management";
+import Component from "../pages/table-management";
 import ReservationList from "../pages/reservation-list";
 import FormReserva from "@/pages/formReserva";
 import { createBrowserRouter } from "react-router-dom";
 
 export const rutas = createBrowserRouter([
     {
-        path: '/reservas',
+        path: '/listReserva',
         element: <ReservationList></ReservationList>
     },
     {
@@ -13,7 +13,7 @@ export const rutas = createBrowserRouter([
         element: <Component></Component>
     },
     {
-        path: '/reservaForm',
+        path: '/formReserva',
         element: <FormReserva></FormReserva>
     }
 

@@ -8,8 +8,9 @@ const navItems = [
   { href: '/permissions', label: 'Permisos' },
   { href: '/employee-permissions', label: 'Permisos de Empleados' },
   { href: '/kitchen-orders', label: 'Órdenes de Cocina' },
-  { href: '/table-management', label: 'Gestión de Mesas' },
-  { href: '/reservations', label: 'Reservaciones' },
+  { href: '/mesas', label: 'Gestión de Mesas' },
+  { href: '/listReserva', label: 'Reservaciones' },
+  { href: '/formReserva', label: 'Crear Reserva' },
 ];
 
 export default function Navbar() {
